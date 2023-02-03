@@ -1572,6 +1572,8 @@ R"rawliteral(<!DOCTYPE html>
                     console.log("Press: " + event.detail.name);
                     if (event.detail.name === "FACE_1") {
                         websocket.send("A:1");
+                    } else if (event.detail.name === "LEFT_SHOULDER_BOTTOM") {
+                        websocket.send("LT:1");
                     }
                 },
                 false
@@ -1594,9 +1596,16 @@ R"rawliteral(<!DOCTYPE html>
             window.addEventListener(
                 "gc.button.release",
                 function (event) {
-                    console.log("Release: " + event.detail.name);
+                    console.log(
+                        "Release: " +
+                            event.detail.name +
+                            " --> " +
+                            event.detail.value
+                    );
                     if (event.detail.name === "FACE_1") {
                         websocket.send("A:0");
+                    } else if (event.detail.name === "RIGHT_SHOULDER_BOTTOM") {
+                        websocket.send("RT:0");
                     }
                 },
                 false

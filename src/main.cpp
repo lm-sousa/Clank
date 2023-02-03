@@ -1,4 +1,4 @@
-#include "..\lib\MotorController\MotorController.h"
+#include "../lib/MotorController/MotorController.h"
 #include <Arduino.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
@@ -7,9 +7,9 @@
 #include <Wire.h>
 
 // pins
-#define ENA_PIN 15
-#define IN1_PIN 2
-#define IN2_PIN 4
+#define ENA_PIN 4
+#define IN1_PIN 16
+#define IN2_PIN 17
 
 #define IN3_PIN 5  // verde
 #define IN4_PIN 18 // azul
@@ -24,6 +24,7 @@ const char *ssid = "REDACTED";
 const char *password = "REDACTED";
 
 int ledState = 0;
+float motorSpeed = 0;
 
 MotorController Motors(ENA_PIN, IN1_PIN, IN2_PIN, IN3_PIN, IN4_PIN, ENB_PIN,
                        PWM_CHANNEL1, PWM_CHANNEL2);
@@ -55,9 +56,15 @@ void handleWebSocketMessage(void *arg, uint8_t *data, size_t len) {
 
         char *btn = strtok((char *)data, ":");
         char *value = strtok(NULL, ":");
-        Serial.println(String(btn) + " --> " + String(value));
         if (strcmp(btn, "A") == 0) {
             digitalWrite(LED_BUILTIN, String(value).toInt());
+        } else if (strcmp(btn, "RT") == 0) {
+            float value_f = String(value).toFloat();
+            Motors.setMotorSpeed(value_f * 100, 1);
+            Motors.setMotorSpeed(value_f * 100, 2);
+            Serial.println(value_f);
+        } else if (strcmp(btn, "LT") == 0) {
+            Motors.stopMotors();
         }
     }
 }
@@ -102,7 +109,8 @@ void setup(void) {
     Serial.begin(9600);
 
     // initialize LED digital pin as an output.
-    pinMode(LED_BUILTIN, OUTPUT);
+    // pinMode(LED_BUILTIN, OUTPUT);
+    ledcAttachPin(LED_BUILTIN, PWM_CHANNEL2);
     u8g2.begin();
 
     // Connect to Wi-Fi
@@ -133,7 +141,4 @@ void loop() {
         u8g2.setFont(u8g2_font_ncenB10_tr);
         u8g2.drawStr(0, 24, WiFi.localIP().toString().c_str());
     } while (u8g2.nextPage());
-
-    Motors.setMotorSpeed(100, 1);
-    Motors.setMotorSpeed(100, 2);
 }
